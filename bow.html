@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+<style>
+#info {
+  position: absolute;
+  top: 1%;
+  width: 100%;
+  padding: 10px;
+  text-align: center;
+  color: #ffee12;
+}
+body{
+ overflow: hidden
+}
+</style>
+</head>
+
+<body> 
+<div id="info">Bowing
+  <button id="start">Play</button>
+  <select id='sequence'>
+  <option value='ev1'> 1 </option>
+  <option value='ev1p'> 1p </option>
+  <option value='ev1pp'> 1pp </option>
+  <option value='ev2'> 2 </option>
+  <option value='ev3'> 3 </option>
+  <option value='ev3p'> 3p </option>
+  <option value='ev3pp'> 3pp </option>
+  <option value='ev4'> 4 </option>
+  </select>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r78/three.min.js"></script>
+<script src="https://code.jquery.com/jquery-2.1.4.min.js"></script>
+
+<script>
+
+$('#start').click ( 
+  
+  function () {
+     metroStarted = ! metroStarted;
+     
+     if (metroStarted) {
+     	$('#start').text ('stop');
+ 		startT = new Date().getTime();
+ 		startPlayList (eventArray);
+  		metro = setInterval ( function(){animateMetro()}, 60000/BPM);
+     } else {
+        $('#start').text ('start');
+        clearInterval (metro);
+        
+        // clear metronome lights
+        beats.forEach (function (beat) {beat.material.wireframe = false;});
+        animateMetro.which = 0;
+     }
+  }
+);
+ 
+$('#sequence').change ( function() {
+   var which = $(this).val();
+   switch (which) {
+   	case 'ev1':
+   		eventArray = makeEventArray1();
+ 		break;
+   	case 'ev1p':
+   		eventArray = makeEventArray1p();
+ 		break;
+   	case 'ev1pp':
+   		eventArray = makeEventArray1pp();
+ 		break;
+   	case 'ev2':
+   		eventArray = makeEventArray2();
+ 		break;
+   	case 'ev3':
+   		eventArray = makeEventArray3();
+ 		break;
+   	case 'ev3p':
+   		eventArray = makeEventArray3p();
+ 		break;
+   	case 'ev3pp':
+   		eventArray = makeEventArray3pp();
+ 		break;
+   	case 'ev4':
+   		eventArray = makeEventArray4();
+ 		break;
+ 		
+   }
+   
+   keyframes = makeSequence(eventArray);  
+   //makePlayList (eventArray);
+
+//   console.log ($(this).val() );
+});
+ 
+
+function animateMetro() {
+
+ animateMetro.which = animateMetro.which === undefined ? 1 : (animateMetro.which+1)%4;
+ 
+ beats[animateMetro.which].material.wireframe = ! beats[animateMetro.which].material.wireframe;
+	
+}
+
+// metronome
+function makeMetronome() {
+     
+  for (var i = 0; i < 4; i++) {
+  	var bb = new THREE.Mesh (new THREE.CircleGeometry(0.6, 20), 
+     new THREE.MeshBasicMaterial({color: 0xff0000}));
+  	beats.push ( bb );
+  	bb.position.set (0+2*i, 7, 0);
+  	scene.add (bb);
+  }
+    
+}
+
+var BPM = 80;
+var startT;
+var renderer, camera, scene, frog, bow;
+var bowLen = 8;
+var period;
+var eventArray, keyframes;
+
+////// metronome
+var beats=[];
+var metro;
+var metroStarted = false;
+
+
+init();
+animate();
+
+// drill #1: QN, QN, QN, QN （mf)
+function makeEventArray1 () {
+  var eventArray = [];
+  eventArray.push(new Event(0, 1, 69, 'D', 0.8, 0.5) );
+  eventArray.push(new Event(1, 1, 71, 'U') );
+  eventArray.push(new Event(2, 1, 72, 'D') );
+  eventArray.push(new Event(3, 1, 74, 'U') );
+  period = 4;
+  return eventArray;
+}
+
+// drill #1p: QN, QN, QN, QN （crescendo)
+function makeEventArray1p () {
+  var eventArray = [];
+  eventArray.push(new Event(0, 1, 69, 'D', 0.2, 0.5) );
+  eventArray.push(new Event(1, 1, 71, 'U', 0.4) );
+  eventArray.push(new Event(2, 1, 72, 'D', 0.6) );
+  eventArray.push(new Event(3, 1, 74, 'U', 1.0) );
+  period = 4;
+  return eventArray;
+}
+
+// drill #1p: QN, QN, QN, QN （decrescendo)
+function makeEventArray1pp () {
+  var eventArray = [];
+  eventArray.push(new Event(0, 1, 69, 'D', 1.0, 0.5) );
+  eventArray.push(new Event(1, 1, 69, 'U', 0.8) );
+  eventArray.push(new Event(2, 1, 69, 'D', 0.4) );
+  eventArray.push(new Event(3, 1, 69, 'U', 0.2) );
+  period = 4;
+  return eventArray;
+}
+
+function makeEventArray2 () {
+  var eventArray = [];
+  eventArray.push(new Event(0, 1, 69, 'D', 0.8, 0.5) );
+  eventArray.push(new Event(1, 1, 69, 'U') );
+  eventArray.push(new Event(2, 2, 69, 'D') );
+  period = 4;
+  return eventArray;
+}
+
+function makeEventArray3 () {  // rest 
+  var eventArray = [];
+  eventArray.push(new Event(0, 1, 69, 'D', 0.8, 0.5) );
+  eventArray.push(new Event(1, 1, 0) );
+  eventArray.push(new Event(2, 1, 69, 'U') );
+  period = 3;
+  return eventArray;
+}
+
+function makeEventArray3p () {
+  var eventArray = [];
+  eventArray.push(new Event(0, 1, 69, 'D', 0.8, 0.5) );
+  eventArray.push(new Event(1, 1, 0) );
+  eventArray.push(new Event(2, 1, 69, 'D') );
+  period = 3;
+  return eventArray;
+}
+
+function makeEventArray3pp () {
+  var eventArray = [];
+  eventArray.push(new Event(0, 1, 69, 'D', 0.8, 0.5) );
+  eventArray.push(new Event(1, 2, 0) );
+  eventArray.push(new Event(3, 1, 69, 'D') );
+  period = 4;
+  return eventArray;
+}
+
+function makeEventArray4 () {  // longer sequence
+
+  var eventArray = [];
+ 
+  eventArray.push(new Event(0, 1, 69, 'D', 0.8, 0.25) );
+  eventArray.push(new Event(1, 1, 71, 'U') );
+  eventArray.push(new Event(2, 1, 72, 'D') );
+  eventArray.push(new Event(3, 1, 74, 'U') );
+  eventArray.push(new Event(4, 2, 74, 'D', 0.8, 0.5) );
+  eventArray.push(new Event(6, 1, 72, 'U',0.8, 0.75) );
+  eventArray.push(new Event(7, 1, 71, 'D') );
+  eventArray.push(new Event(8, 3, 69, 'U') );
+  period = 11;
+  
+  return eventArray;
+}
+
+function makeEventArray5 () {  // with slur
+  var eventArray = [];
+  
+  eventArray.push(new Event(0, 1, 69, 'D', 0.8, 0.5) );
+  eventArray.push(new Event(1, 1, 69, 'D') );
+  eventArray.push(new Event(2, 2, 69, 'U') );
+  period = 4;
+  return eventArray;
+}
+
+
+// option 1: give center of bowing, return possible length
+function dynamic2Length (dynamic, bowCenter, duration) {
+
+  // 0. extra long stroke ... return 1.0
+ 
+  // 1. consider duration (2 beats <--> 1.0)
+  
+  var len = Math.min (duration/2, 1.0);  
+  
+  // 2. consider dynamics
+  len = len * dynamic;
+  
+  console.log ('dy:' + dynamic + ' len: ' + len);
+  
+  return len;
+
+}
+// option 2: derive center of bowing ...
+
+
+// event constructor
+function Event (beat, duration, note, type, dynamics, pos) {
+
+  // these three must be set
+  this.beat = beat;
+  this.duration = duration; // default: 1 QN
+  this.note = note; // default: (A4, 69)
+
+  // if note == 0 ... this is a rest
+  
+  // default or running parameters  
+  Event.type = Event.type === undefined ? 'D' : Event.type;
+  if (type === undefined) {
+  	this.type = Event.type; 
+  } else {
+    this.type = type;
+    Event.type = type;
+  }
+
+  Event.dynamics = Event.dynamics === undefined ? 0.5 : Event.dynamics;
+  if (dynamics === undefined) {
+  	this.dynamics = Event.dynamics; 
+  } else {
+    this.dynamics = dynamics;
+    Event.dynamics = dynamics;
+  }
+
+  Event.pos = Event.pos === undefined ? 0.5 : Event.pos;
+  if (pos === undefined) {
+  	this.pos = Event.pos; 
+  } else {
+    this.pos = pos;
+    Event.pos = pos;
+  }
+
+
+  
+  this.length = dynamic2Length (this.dynamics, this.pos, this.duration); 
+
+  // setting position: some bowCenter can result non-sensible bowing position
+  // (especially when dynamics is small)
+  // manual or automatic correction required ...
+}
+
+
+function makeSequence(eventArray) {
+  var keyframes = [];
+  var lastKeyStop;
+
+ 
+  // standby
+  var keyframe0 = {};
+  keyframe0.key = -4; keyframe0.pos = 0.5;  // standby at midbow
+  keyframes.push (keyframe0); 
+  
+  // set up based on first event
+  event = eventArray[0];
+  var keyframe0 = {};
+  keyframe0.key = - event.duration; keyframe0.pos = 0.5; 
+  keyframes.push (keyframe0);
+  var keyframe1 = {};
+  keyframe1.key = 0;
+  keyframe1.pos = event.type === 'D' ? event.pos - event.length / 2 : event.pos + event.length / 2;
+  keyframes.push(keyframe1);
+  lastKeyStop = keyframe1.pos;  // no lift
+  
+  
+  for (var i = 0; i < eventArray.length; i++) {
+    var event = eventArray[i];
+
+  //console.log ('event: ' + event.beat + ' pos: ' + event.pos);
+  
+    
+    if (event.note == 0) { // event is a rest
+        var keyframe0 = {};
+        keyframe0.key = event.beat;
+        keyframe0.pos = lastKeyStop; 
+        keyframes.push (keyframe0);  // 'stay'
+            
+        // no need to set
+		var prevEvent = eventArray[i-1];
+		var nextEvent = eventArray[i+1];
+		
+        if (prevEvent.type !== nextEvent.type) {  // no need to set
+        
+          var keyframe1 = {};
+          keyframe1.key = event.beat + event.duration;
+          keyframe1.pos = lastKeyStop;  // end of 'stay'
+          keyframes.push (keyframe1);
+ 		
+ 		} else {// need to set
+          var keyframe1 = {};
+          var pos1 = event.beat + event.duration - 1;
+          var pos2 = (event.beat + nextEvent.beat)/2;
+          keyframe1.key = Math.max( pos1, pos2 );  // !!
+          keyframe1.pos = lastKeyStop // end of 'stay'; start of 'set
+          keyframes.push (keyframe1);
+        
+		  var keyframe2 = {};
+		  keyframe2.key = nextEvent.beat;  // end of 'set'
+		  keyframe2.pos = nextEvent.type === 'D' ? nextEvent.pos - nextEvent.length / 2 
+		                   : nextEvent.pos - nextEevent.length / 2;
+		  keyframes.push (keyframe2);    
+		  lastKeyStop = keyframe2.pos;   
+        }
+        
+    } else { // event is a note
+		var keyframe0 = {};
+		// generate two keys per event (begin & end)
+		keyframe0.key = event.beat;
+		keyframe0.pos = lastKeyStop;
+		keyframes.push(keyframe0);
+
+		var keyframe1 = {};
+		keyframe1.key = event.beat + event.duration;
+		keyframe1.pos = event.type === 'D' ? event.pos + event.length / 2 : event.pos - event.length / 2;
+		keyframes.push(keyframe1);
+		lastKeyStop = keyframe1.pos; // no lift
+    }
+  }
+    
+  
+  printKeyframe(keyframes);
+
+  return keyframes;
+
+}
+
+function printKeyframe(keyframes) {
+    for (var i = 0; i < keyframes.length; i++) {
+    
+       console.log (i + ':' + 'key: ' + keyframes[i].key.toFixed(2) + 'pos: ' + keyframes[i].pos);
+    }
+}
+
+////////////////////////////////////////////
+// helper functions
+//
+
+function time2Beat(msec) {
+  return msec / 1000 * BPM / 60;
+}
+
+function beat2Time(beat) {  // return msec
+  return beat*60000/BPM;
+}
+
+
+function bowBody() {
+  var bow = new THREE.Object3D();
+  var bowbody = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.2, bowLen, 20), 
+  					new THREE.MeshNormalMaterial());
+  bow.add(bowbody);
+  bowbody.position.y = bowLen / 2;
+  var frog = new THREE.Mesh(new THREE.SphereGeometry(0.3, 20, 20), 
+  					new THREE.MeshNormalMaterial());
+  bow.add(frog);
+  bow.rotation.z = Math.PI / 2;
+  return bow;
+}
+
+
+function interpolate(beat) {
+	
+  // non-repeat!
+  if (beat <= period) {  
+
+    //var b = beat % period;
+	b = beat;
+	
+    for (var i = 0; i < keyframes.length; i++) {
+      if (b < keyframes[i].key) break;
+    }
+
+//	console.log (b.toFixed(2) + ':' + i + ',' + keyframes[i]);
+	
+    // take i-1 & i
+    var m = (b - keyframes[i - 1].key) / (keyframes[i].key - keyframes[i - 1].key);
+    var p = (1-m)*keyframes[i - 1].pos + m*keyframes[i].pos;
+
+  } else { // last position
+
+    var p = keyframes[keyframes.length - 1].pos
+  }
+
+  return p; // [0,1]  
+}
+
+//iife: to draw center line
+(function() {
+  var material = new THREE.LineBasicMaterial({
+    color: 0x00ffff
+  });
+
+  var geometry = new THREE.Geometry();
+  geometry.vertices.push(
+    new THREE.Vector3(0, -10, 0),
+    new THREE.Vector3(0, 10, 0)
+  );
+
+  var line = new THREE.Line(geometry, material);
+  scene.add(line);
+})();
+
+
+
+function init() {
+
+  renderer = new THREE.WebGLRenderer();
+  renderer.setSize(window.innerWidth, window.innerHeight);
+  renderer.setClearColor(0x888888);
+  document.body.appendChild(renderer.domElement);
+
+  scene = new THREE.Scene();
+  camera = new THREE.OrthographicCamera(-10, 10, 10, -10, -10, 100);
+  camera.position.z = 10;
+
+  bow = bowBody();
+  scene.add(bow);
+
+  // metronome init
+  makeMetronome();
+
+  // bowing init  
+
+  // test suite: 1, 1p, 1pp, 2 3, 3p, 3pp, 4, 
+  eventArray = makeEventArray1();
+  
+  keyframes = makeSequence(eventArray);  
+
+}
+
+function animate() {
+
+  requestAnimationFrame(animate);
+
+  var time = new Date().getTime() - startT; // in msec
+  var b = time2Beat(time) -4;  // 4 beats count-in
+
+  bow.position.x = interpolate(b) * bowLen;
+  
+  renderer.render(scene, camera);
+}
+
+
+// https://repl.it/JcOa/4
+function startPlayList (eventArray) {
+   eventArray.forEach ( function (event) {
+   	if (event.note !== 0) {
+   		setTimeout ( function () {NoteOn (event.note, event.duration, event.dynamics)}, 
+   			beat2Time (4 + event.beat) );
+    }
+   });
+}
+
+function NoteOn (note, duration, dynamic) {
+   console.log ('On: ' + note + ' - ' + dynamic);
+   setTimeout ( function() { NoteOff (note);}, beat2Time (duration));
+}
+
+function NoteOff (note) {
+   console.log ('   Off: ' + note);
+}
+
+</script>
+</body>
+
+</html>
