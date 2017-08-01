@@ -20,9 +20,10 @@ body{
 
 <body> 
 <div id="info">Bowing
-  <button id="start">Play</button>
-  <select id='sequence'>
-  <option value='ev1'> 1 </option>
+<button id="start">Play</button>
+
+<select id='sequence'>
+  <option value='ev1' selected> 1 </option>
   <option value='ev1p'> 1p </option>
   <option value='ev1pp'> 1pp </option>
   <option value='ev2'> 2 </option>
@@ -30,8 +31,18 @@ body{
   <option value='ev3p'> 3p </option>
   <option value='ev3pp'> 3pp </option>
   <option value='ev4'> 4 </option>
-  </select>
+  <option value='ev5'> 5 </option>
+  <option value='ev5p'> 5p </option>
+  <option value='ev5pp'> 5pp </option>
+  <option value='ev6'> 6 </option>
+  <option value='ev6p'> 6p </option>
+  <option value='ev6pp'> 6pp </option>
+  <option value='ev7'> 7 </option>  
+  <option value='ev8'> 8 </option>  
+</select>
+
 </div>
+
 <!-- midi related -->
 	<!-- polyfill -->
 	<script src="./MIDI.js/inc/shim/Base64.js" type="text/javascript"></script>
@@ -52,6 +63,9 @@ body{
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r78/three.min.js"></script>
 <script src="https://code.jquery.com/jquery-2.1.4.min.js"></script>
 
+<!--script src="test1.js"></script-->
+<script src="test1.js"></script>
+
 <script>
 
 $('#start').click ( 
@@ -62,8 +76,10 @@ $('#start').click (
      if (metroStarted) {
      	$('#start').text ('stop');
  		startT = new Date().getTime();
+		
  		startPlayList (eventArray);
-  		metro = setInterval ( function(){animateMetro()}, 60000/BPM);
+  		
+		metro = setInterval ( function(){animateMetro()}, 60000/BPM);
      } else {
         $('#start').text ('start');
         clearInterval (metro);
@@ -75,43 +91,6 @@ $('#start').click (
   }
 );
  
-$('#sequence').change ( function() {
-   var which = $(this).val();
-   switch (which) {
-   	case 'ev1':
-   		eventArray = makeEventArray1();
- 		break;
-   	case 'ev1p':
-   		eventArray = makeEventArray1p();
- 		break;
-   	case 'ev1pp':
-   		eventArray = makeEventArray1pp();
- 		break;
-   	case 'ev2':
-   		eventArray = makeEventArray2();
- 		break;
-   	case 'ev3':
-   		eventArray = makeEventArray3();
- 		break;
-   	case 'ev3p':
-   		eventArray = makeEventArray3p();
- 		break;
-   	case 'ev3pp':
-   		eventArray = makeEventArray3pp();
- 		break;
-   	case 'ev4':
-   		eventArray = makeEventArray4();
- 		break;
- 		
-   }
-   
-   keyframes = makeSequence(eventArray);  
-   //makePlayList (eventArray);
-
-//   console.log ($(this).val() );
-});
- 
-
 function animateMetro() {
 
  animateMetro.which = animateMetro.which === undefined ? 1 : (animateMetro.which+1)%4;
@@ -133,7 +112,7 @@ function makeMetronome() {
     
 }
 
-var BPM = 120;
+var BPM = 80;
 var startT;
 var renderer, camera, scene, frog, bow;
 var bowLen = 8;
@@ -148,102 +127,6 @@ var metroStarted = false;
 
 init();
 animate();
-
-// drill #1: QN, QN, QN, QN （mf)
-function makeEventArray1 () {
-  var eventArray = [];
-  eventArray.push(new Event(0, 1, 69, 'D', 0.8, 0.5) );
-  eventArray.push(new Event(1, 1, 71, 'U') );
-  eventArray.push(new Event(2, 1, 72, 'D') );
-  eventArray.push(new Event(3, 1, 74, 'U') );
-  period = 4;
-  return eventArray;
-}
-
-// drill #1p: QN, QN, QN, QN （crescendo)
-function makeEventArray1p () {
-  var eventArray = [];
-  eventArray.push(new Event(0, 1, 69, 'D', 0.2, 0.5) );
-  eventArray.push(new Event(1, 1, 71, 'U', 0.4) );
-  eventArray.push(new Event(2, 1, 72, 'D', 0.6) );
-  eventArray.push(new Event(3, 1, 74, 'U', 1.0) );
-  period = 4;
-  return eventArray;
-}
-
-// drill #1p: QN, QN, QN, QN （decrescendo)
-function makeEventArray1pp () {
-  var eventArray = [];
-  eventArray.push(new Event(0, 1, 69, 'D', 1.0, 0.5) );
-  eventArray.push(new Event(1, 1, 69, 'U', 0.8) );
-  eventArray.push(new Event(2, 1, 69, 'D', 0.4) );
-  eventArray.push(new Event(3, 1, 69, 'U', 0.2) );
-  period = 4;
-  return eventArray;
-}
-
-function makeEventArray2 () {
-  var eventArray = [];
-  eventArray.push(new Event(0, 1, 69, 'D', 0.8, 0.5) );
-  eventArray.push(new Event(1, 1, 69, 'U') );
-  eventArray.push(new Event(2, 2, 69, 'D') );
-  period = 4;
-  return eventArray;
-}
-
-function makeEventArray3 () {  // rest 
-  var eventArray = [];
-  eventArray.push(new Event(0, 1, 69, 'D', 0.8, 0.5) );
-  eventArray.push(new Event(1, 1, 0) );
-  eventArray.push(new Event(2, 1, 69, 'U') );
-  period = 3;
-  return eventArray;
-}
-
-function makeEventArray3p () {
-  var eventArray = [];
-  eventArray.push(new Event(0, 1, 69, 'D', 0.8, 0.5) );
-  eventArray.push(new Event(1, 1, 0) );
-  eventArray.push(new Event(2, 1, 69, 'D') );
-  period = 3;
-  return eventArray;
-}
-
-function makeEventArray3pp () {
-  var eventArray = [];
-  eventArray.push(new Event(0, 1, 69, 'D', 0.8, 0.5) );
-  eventArray.push(new Event(1, 2, 0) );
-  eventArray.push(new Event(3, 1, 69, 'D') );
-  period = 4;
-  return eventArray;
-}
-
-function makeEventArray4 () {  // longer sequence
-
-  var eventArray = [];
- 
-  eventArray.push(new Event(0, 1, 69, 'D', 0.8, 0.25) );
-  eventArray.push(new Event(1, 1, 71, 'U') );
-  eventArray.push(new Event(2, 1, 72, 'D') );
-  eventArray.push(new Event(3, 1, 74, 'U') );
-  eventArray.push(new Event(4, 2, 74, 'D', 0.8, 0.5) );
-  eventArray.push(new Event(6, 1, 72, 'U',0.8, 0.75) );
-  eventArray.push(new Event(7, 1, 71, 'D') );
-  eventArray.push(new Event(8, 3, 69, 'U') );
-  period = 11;
-  
-  return eventArray;
-}
-
-function makeEventArray5 () {  // with slur
-  var eventArray = [];
-  
-  eventArray.push(new Event(0, 1, 69, 'D', 0.8, 0.5) );
-  eventArray.push(new Event(1, 1, 69, 'D') );
-  eventArray.push(new Event(2, 2, 69, 'U') );
-  period = 4;
-  return eventArray;
-}
 
 
 // option 1: give center of bowing, return possible length
@@ -312,11 +195,12 @@ function Event (beat, duration, note, type, dynamics, pos) {
 
 
 function makeSequence(eventArray) {
+
   var keyframes = [];
   var lastKeyStop;
 
  
-  // standby
+  // count-in standby
   var keyframe0 = {};
   keyframe0.key = -4; keyframe0.pos = 0.5;  // standby at midbow
   keyframes.push (keyframe0); 
@@ -328,26 +212,38 @@ function makeSequence(eventArray) {
   keyframes.push (keyframe0);
   var keyframe1 = {};
   keyframe1.key = event.beat;
-  keyframe1.pos = event.type === 'D' ? event.pos - event.length / 2 : event.pos + event.length / 2;
+  keyframe1.pos = (event.type == 'D' || event.type == 'DS') ? event.pos - event.length / 2 : event.pos + event.length / 2;
   keyframes.push(keyframe1);
   lastKeyStop = keyframe1.pos;  // no lift
   
+  // slur states
+  // first three: cumulative
+  var eventsInSlur = [];  // events in this stroke (except the first one)
+  var slurDur = 0;  // time
+  var slurLength;  // motion length 
+  
+  
+  var slurType, slurStart; // set by first event in this stroke;
   
   for (var i = 0; i < eventArray.length; i++) {
+  
     var event = eventArray[i];
+    var prevEvent = eventArray[i-1];
+    var nextEvent = eventArray[i+1];
+    // var nextEvent = eventArray[i+1];  // could be undefined (for last event)
 
   //console.log ('event: ' + event.beat + ' pos: ' + event.pos);
   
     
-    if (event.note == 0) { // event is a rest
+    if (event.note == 0 && event.type !== 'S') { // event is a rest (and non-slurred)
         var keyframe0 = {};
         keyframe0.key = event.beat;
         keyframe0.pos = lastKeyStop; 
         keyframes.push (keyframe0);  // 'stay'
             
         // no need to set
-		var prevEvent = eventArray[i-1];
-		var nextEvent = eventArray[i+1];
+//		var prevEvent = eventArray[i-1];
+//		var nextEvent = eventArray[i+1];
 		
         if (prevEvent.type !== nextEvent.type) {  // no need to set
         
@@ -373,17 +269,141 @@ function makeSequence(eventArray) {
         }
         
     } else { // event is a note
+
+		////////////////
+		// slur handling
+		
+		// slur starts
+        if (nextEvent && nextEvent.type === 'S' && event.type != 'S') {  
+    		
+    		eventsInSlur = [];
+    		slurDur = event.duration;
+    		slurLength = event.length;
+    		
+    		slurType = event.type;
+    		slurStart = event.beat;
+    		
+    		var keyframe0 = {};
+    		keyframe0.key = event.beat;
+    		keyframe0.pos = lastKeyStop;  // where this stroke starts ...
+    		keyframes.push (keyframe0);
+    		
+    		continue;  // end of this event
+        
+        } 
+
+        // slur in progress
+        if (slurDur != 0) {   // slurDur != 0 signifies slur in progress
+            
+            // slur ends if ...
+            
+            if (nextEvent === undefined ||   // nothing to follow
+                nextEvent.type !== 'S') {    // start a new stroke
+				
+				// add the last event of this stroke
+				eventsInSlur.push (event);
+				if (event.note !== 0) {
+				   slurDur += event.duration;
+				   slurLength += event.length;
+				}
+				
+        	    strokeLength = _Length (lastKeyStop, slurType, slurLength); 
+        	    
+        	    console.log ('sl: ' + strokeLength);
+        	    
+        		// output keyframes
+        		var cumuRest = 0;
+        		
+        		for (var ii = 0; ii < eventsInSlur.length; ii++) {
+        			var sEvent = eventsInSlur[ii];
+        			if (sEvent.note != 0) { // note
+
+						var keyframe = {};
+						keyframe.key = sEvent.beat;
+						moveRatio = (sEvent.beat - slurStart - cumuRest)/slurDur;
+						console.log ('mr: ' + moveRatio);
+						keyframe.pos = lastKeyStop + _Move (slurType, moveRatio, strokeLength);
+						keyframes.push (keyframe);
+
+        			} else {  // in-slur-rest
+						var keyframe = {};
+						keyframe.key = sEvent.beat;
+						
+						if (ii == 0) // 2nd event in this slur is a rest
+							pEvent = prevEvent;
+						else
+							pEvent = eventsInSlur[ii-1];
+						
+						
+						moveRatio = (pEvent.beat - slurStart - cumuRest + pEvent.duration)/slurDur;
+						keyframe.pos = lastKeyStop + _Move (slurType, moveRatio, strokeLength);
+						keyframes.push (keyframe);
+
+						cumuRest += sEvent.duration;
+        			}
+        		}
+        		
+
+        		// last keyframe in this stroke
+        		lastSEvent = eventsInSlur[eventsInSlur.length-1];
+        		if (lastSEvent.note != 0) {  // not a rest
+        			var keyframe = {};
+        			keyframe.key = lastSEvent.beat + lastSEvent.duration;
+					keyframe.pos = lastKeyStop + _Move (slurType, 1.0, strokeLength);
+					// slurType === 'D' ? lastKeyStop + strokeLength: lastKeyStop - strokeLength;
+        			keyframes.push (keyframe);
+        		}
+        		
+        		// update lastKeyStop
+        		lastKeyStop = keyframes[keyframes.length-1].pos;
+        		
+        		// terminating slur
+        		slurDur = 0;
+        		
+
+            } else { // still in slur
+        	
+				eventsInSlur.push (event);
+				if (event.note != 0) { // not a in-slur-rest
+					slurDur += event.duration; // rest does not count as duration
+					slurLength += event.length;
+				}
+			
+        	} 
+        		
+        	continue;  // end of this event
+        	
+        }
+        
+    
+		// if not slurred
+		    
 		var keyframe0 = {};
 		// generate two keys per event (begin & end)
 		keyframe0.key = event.beat;
 		keyframe0.pos = lastKeyStop;
 		keyframes.push(keyframe0);
 
-		var keyframe1 = {};
-		keyframe1.key = event.beat + event.duration;
-		keyframe1.pos = event.type === 'D' ? event.pos + event.length / 2 : event.pos - event.length / 2;
-		keyframes.push(keyframe1);
-		lastKeyStop = keyframe1.pos; // no lift
+		// if staccato
+		if (event.type === 'DS' || event.type === 'US') {
+			// if staccato
+			var keyframe1 = {};
+			keyframe1.key = event.beat + event.duration/2;
+			keyframe1.pos = event.type === 'DS' ? event.pos + event.length / 2 : event.pos - event.length / 2;
+			keyframes.push(keyframe1);
+			var keyframe2 = {};
+			keyframe2.key = event.beat + event.duration;
+			keyframe2.pos = keyframe1.pos;
+			keyframes.push (keyframe2);
+			lastKeyStop = keyframe2.pos;
+		} else { // non-staccato
+			var keyframe1 = {};
+			keyframe1.key = event.beat + event.duration;
+			keyframe1.pos = event.type === 'D' ? event.pos + event.length / 2 : event.pos - event.length / 2;
+			keyframes.push(keyframe1);
+			lastKeyStop = keyframe1.pos; // no lift
+		}
+		
     }
   }
     
@@ -394,11 +414,52 @@ function makeSequence(eventArray) {
 
 }
 
-function printKeyframe(keyframes) {
-    for (var i = 0; i < keyframes.length; i++) {
-    
-       console.log (i + ':' + 'key: ' + keyframes[i].key.toFixed(2) + 'pos: ' + keyframes[i].pos);
+// helpers
+function _Move (slurType, moveRatio, strokeLength) {
+   var sign = (slurType === 'D') ? 1: -1;
+   return sign * moveRatio * strokeLength;
+}
+
+function _Length (lastKeyStop, slurType, slurLength) {
+   // slur starts from lastKeyStop
+   var maxStroke = (slurType === 'D') ? 1 - lastKeyStop : lastKeyStop;
+   return Math.min (slurLength, maxStroke);
+}
+
+
+/////////////////////////////////////////////////////////////
+// PlayList related
+//
+
+function startPlayList (eventArray) {
+   eventArray.forEach ( function (event) {
+   	if (event.note !== 0) {
+   		setTimeout ( function () {NoteOn (event.note, event.duration, event.dynamics, event.type)}, 
+   			beat2Time (4 + event.beat) );
     }
+   });
+}
+
+function NoteOn (note, duration, dynamics, type) {
+   console.log ('On: ' + note + ' - ' + dynamics + ':' + type);
+
+   MIDI.noteOn(1, note, 127*dynamics, 0);
+   
+   var dutyCycle;
+   if (type === 'DS' || type === 'US') { // staccato
+	dutyCycle = 0.5;
+   } else {   // need to further separate detache (& portato) from legato
+	dutyCycle = 0.9;
+   } 
+   
+   setTimeout ( function() { NoteOff (note);}, dutyCycle*beat2Time (duration));
+}
+
+function NoteOff (note) {
+   console.log ('   Off: ' + note);
+   
+   MIDI.noteOff(1,note,0);
+
 }
 
 ////////////////////////////////////////////
@@ -492,7 +553,8 @@ function init() {
   // bowing init  
 
   // test suite: 1, 1p, 1pp, 2 3, 3p, 3pp, 4, 
-  eventArray = makeEventArray1();
+  eventArray = makeEventArray8();
+  $('#sequence').val ('ev8');
   
   keyframes = makeSequence(eventArray);  
 
@@ -511,35 +573,6 @@ function animate() {
 }
 
 
-// https://repl.it/JcOa/4
-function startPlayList (eventArray) {
-   eventArray.forEach ( function (event) {
-   	if (event.note !== 0) {
-   		setTimeout ( function () {NoteOn (event.note, event.duration, event.dynamics, event.type)}, 
-   			beat2Time (4 + event.beat) );
-    }
-   });
-}
-
-function NoteOn (note, duration, dynamic, type) {
-   console.log ('On: ' + note + ' - ' + dynamic);
-
-   MIDI.noteOn(1, note, 127*dynamics, 0);
-   var dutyCycle;
-   if (type === 'DS' || type === 'US') { // staccato
-	dutyCycle = 0.5;
-   } else {   // need to further separate detache (& portato) from legato
-	dutyCycle = 1.0;
-   } 
-   setTimeout ( function() { NoteOff (note);}, dutyCycle*beat2Time (duration));
-}
-
-function NoteOff (note) {
-   console.log ('   Off: ' + note);
-   
-   MIDI.noteOff(1,note,0);
-
-}
 
 
 //  midi related 

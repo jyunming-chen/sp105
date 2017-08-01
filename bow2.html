@@ -30,25 +30,10 @@ body{
   <option value='ev3p'> 3p </option>
   <option value='ev3pp'> 3pp </option>
   <option value='ev4'> 4 </option>
+  <option value='ev4p'> 4p </option>
   </select>
 </div>
-<!-- midi related -->
-	<!-- polyfill -->
-	<script src="./MIDI.js/inc/shim/Base64.js" type="text/javascript"></script>
-	<script src="./MIDI.js/inc/shim/Base64binary.js" type="text/javascript"></script>
-	<script src="./MIDI.js/inc/shim/WebAudioAPI.js" type="text/javascript"></script>
-	<!-- midi.js package -->
-	<script src="./MIDI.js/js/midi/audioDetect.js" type="text/javascript"></script>
-	<script src="./MIDI.js/js/midi/gm.js" type="text/javascript"></script>
-	<script src="./MIDI.js/js/midi/loader.js" type="text/javascript"></script>
-	<script src="./MIDI.js/js/midi/plugin.audiotag.js" type="text/javascript"></script>
-	<script src="./MIDI.js/js/midi/plugin.webaudio.js" type="text/javascript"></script>
-	<script src="./MIDI.js/js/midi/plugin.webmidi.js" type="text/javascript"></script>
-	<!-- utils -->
-	<script src="./MIDI.js/js/util/dom_request_xhr.js" type="text/javascript"></script>
-	<script src="./MIDI.js/js/util/dom_request_script.js" type="text/javascript"></script>
 
-<!-- graphics related -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r78/three.min.js"></script>
 <script src="https://code.jquery.com/jquery-2.1.4.min.js"></script>
 
@@ -102,6 +87,9 @@ $('#sequence').change ( function() {
    	case 'ev4':
    		eventArray = makeEventArray4();
  		break;
+   	case 'ev4p':
+   		eventArray = makeEventArray4p();
+ 		break;
  		
    }
    
@@ -133,7 +121,7 @@ function makeMetronome() {
     
 }
 
-var BPM = 120;
+var BPM = 80;
 var startT;
 var renderer, camera, scene, frog, bow;
 var bowLen = 8;
@@ -235,6 +223,19 @@ function makeEventArray4 () {  // longer sequence
   return eventArray;
 }
 
+function makeEventArray4p () {  // Carmina Burana
+
+  var eventArray = [];
+ 
+  eventArray.push(new Event(1, 2, 71, 'D', 0.8, 0.5) );
+  eventArray.push(new Event(3, 1, 72, 'U') );
+  eventArray.push(new Event(4, 1, 69, 'D') );
+  eventArray.push(new Event(5, 1, 69, 'U') );
+  period = 6;
+  
+  return eventArray;
+}
+
 function makeEventArray5 () {  // with slur
   var eventArray = [];
   
@@ -245,6 +246,16 @@ function makeEventArray5 () {  // with slur
   return eventArray;
 }
 
+function makeEventArray6 () {  // with staccato
+  var eventArray = [];
+  
+  eventArray.push(new Event(0, 1, 69, 'D', 0.8, 0.5) );
+  eventArray.push(new Event(1, 1, 69, 'US') );
+  eventArray.push(new Event(2, 1, 69, 'D') );
+  eventArray.push(new Event(3, 1, 69, 'US') );
+  period = 4;
+  return eventArray;
+}
 
 // option 1: give center of bowing, return possible length
 function dynamic2Length (dynamic, bowCenter, duration) {
@@ -515,48 +526,20 @@ function animate() {
 function startPlayList (eventArray) {
    eventArray.forEach ( function (event) {
    	if (event.note !== 0) {
-   		setTimeout ( function () {NoteOn (event.note, event.duration, event.dynamics, event.type)}, 
+   		setTimeout ( function () {NoteOn (event.note, event.duration, event.dynamics)}, 
    			beat2Time (4 + event.beat) );
     }
    });
 }
 
-function NoteOn (note, duration, dynamic, type) {
+function NoteOn (note, duration, dynamic) {
    console.log ('On: ' + note + ' - ' + dynamic);
-
-   MIDI.noteOn(1, note, 127*dynamics, 0);
-   var dutyCycle;
-   if (type === 'DS' || type === 'US') { // staccato
-	dutyCycle = 0.5;
-   } else {   // need to further separate detache (& portato) from legato
-	dutyCycle = 1.0;
-   } 
-   setTimeout ( function() { NoteOff (note);}, dutyCycle*beat2Time (duration));
+   setTimeout ( function() { NoteOff (note);}, beat2Time (duration));
 }
 
 function NoteOff (note) {
    console.log ('   Off: ' + note);
-   
-   MIDI.noteOff(1,note,0);
-
 }
-
-
-//  midi related 
-window.onload = function () {
-	MIDI.loadPlugin({
-		soundfontUrl: "./MIDI.js/examples/soundfont/",
-		instruments: ["acoustic_grand_piano","violin"],
-		onprogress: function(state, progress) {
-			console.log(state, progress);
-		},
-		onsuccess: function() {
-			MIDI.programChange(0, 0);   // 0 for piano1
-			MIDI.programChange(1, 40);  // 40 for violin
-			MIDI.setVolume(0, 127);
-		}
-	});
-};
 
 </script>
 </body>
