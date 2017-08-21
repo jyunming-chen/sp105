@@ -51,6 +51,9 @@ body{
   <option value='ev8b'> 8b </option>  
   <option value='ev9'> 9 </option>  
   <option value='ev10'> 10 </option>  
+  <option value='ev11'> 11 </option>  
+  <option value='ev12'> 12 </option>  
+  <option value='ev13'> 13 </option>  
 </select>
 
 </div>
@@ -78,6 +81,45 @@ body{
 <script src="test1.js"></script>
 
 <script>
+
+let time2Beat = (msec) => ( msec / 1000 * BPM / 60 );
+let beat2Time = (beat) => ( beat * 60000 / BPM );  // return msec
+
+
+let isSlur = (type) => { 
+	if (type && type[0] === 'S')
+		return true;
+	else
+		return false;
+}
+
+let isDownBow = (type) => {  // including D, DS, DL, ...
+	return type[0] === 'D';
+}
+
+let isStaccato = (type) => { // including portato
+   return type[1] === 'S' || type[1] === 'P';
+}
+
+let isPortato = (type) => {
+   return type[1] === 'P';
+}
+
+let isLift = (type) => {  // lifted rest (L), or lifted note (XL)
+	if (type && (type[0] === 'L' || type[1] === 'L'))
+		return true;
+	else
+		return false;	
+}
+
+let isLiftRequired = (event) => {
+    // default: not lifted ...
+    // including prevEvent.type != nextEvent.type
+	if (isLift(event.type))
+		return true;
+	else
+		return false;
+}
 
 function resetMetro() {
 	$('#start').text ('start');
@@ -127,7 +169,10 @@ function makeMetronome() {
     
 }
 
-var BPM = 140;
+
+
+
+var BPM = 100;
 var startT;
 var renderer, camera, scene, frog, bow;
 var bowLen = 8;
@@ -176,12 +221,12 @@ function Event (beat, duration, note, type, dynamics, pos) {
   
   // default or running parameters  
   Event.type = Event.type === undefined ? 'D' : Event.type;
-  if (type === undefined) {
-  	this.type = Event.type; 
+  if (type === undefined) {   // not given, use the previous type
+	if (note !== 0) this.type = Event.type; // for note only
   } else {
-    this.type = type;
-    Event.type = type;
-  }
+	this.type = type;
+	Event.type = type;
+  }   
 
   Event.dynamics = Event.dynamics === undefined ? 0.5 : Event.dynamics;
   if (dynamics === undefined) {
@@ -227,7 +272,7 @@ function makeSequence(eventArray) {
   keyframes.push (keyframe0);
   var keyframe1 = {};
   keyframe1.key = event.beat;
-  keyframe1.pos = (event.type == 'D' || event.type == 'DS') ? event.pos - event.length / 2 : event.pos + event.length / 2;
+  keyframe1.pos = isDownBow (event.type) ? event.pos - event.length / 2 : event.pos + event.length / 2;
   keyframes.push(keyframe1);
   lastKeyStop = keyframe1.pos;  
   
@@ -253,7 +298,7 @@ function makeSequence(eventArray) {
         keyframe0.pos = lastKeyStop; 
         keyframes.push (keyframe0);  // 'stay'
 		
-        if (prevEvent.type !== nextEvent.type) {  // no need to set
+        if (! isLiftRequired (event)) {//prevEvent.type !== nextEvent.type) {  ... no need to set
         
           var keyframe1 = {};
           keyframe1.key = event.beat + event.duration;
@@ -264,16 +309,18 @@ function makeSequence(eventArray) {
  		
           var keyframe1 = {};
           var pos1 = event.beat + event.duration - 1;
-          var pos2 = (event.beat + nextEvent.beat)/2;
+          var pos2 = 0.5*event.beat + 0.5*nextEvent.beat;
           keyframe1.key = Math.max( pos1, pos2 );  // !!
           keyframe1.pos = lastKeyStop // end of 'stay'; start of 'set
           keyframes.push (keyframe1);
         
 		  var keyframe2 = {};
 		  keyframe2.key = nextEvent.beat;  // end of 'set'
-		  keyframe2.pos = nextEvent.type === 'D' ? nextEvent.pos - nextEvent.length / 2 
-		                   : nextEvent.pos - nextEevent.length / 2;
+		  keyframe2.pos = isDownBow (nextEvent.type) ? (nextEvent.pos - nextEvent.length / 2) : (nextEvent.pos + nextEvent.length / 2);
 		  keyframes.push (keyframe2);    
+		  
+		  keyframe1.pos = keyframe2.pos;
+		  
 		  lastKeyStop = keyframe2.pos;   
         }
         
@@ -407,7 +454,7 @@ function makeSequence(eventArray) {
 			// if staccato (implied rest)
 			var keyframe1 = {};
 			keyframe1.key = event.beat + event.duration/2;
-			keyframe1.pos = event.type === 'DS' ? event.pos + event.length / 2 : event.pos - event.length / 2;
+			keyframe1.pos = isDownBow (event.type) ? event.pos + event.length / 2 : event.pos - event.length / 2;
 			keyframes.push(keyframe1);
 			var keyframe2 = {};
 			keyframe2.key = event.beat + event.duration;
@@ -415,11 +462,33 @@ function makeSequence(eventArray) {
 			keyframes.push (keyframe2);
 			lastKeyStop = keyframe2.pos;
 			
-		} else { // non-staccato
+		} else if (isLiftRequired (event)) {  // XL (lift)
+			// if lift (implied rest)
+		
+			var keyframe1 = {};
+			keyframe1.key = event.beat + 0.5*event.duration;
+			keyframe1.pos = isDownBow (event.type) ? event.pos + event.length / 2 : event.pos - event.length / 2;
+			keyframes.push(keyframe1);
+
+			var keyframe2 = {};
+			keyframe2.key = event.beat + 0.75*event.duration;
+			keyframe2.pos = keyframe1.pos;
+			keyframes.push (keyframe2);
+        
+		  var keyframe3 = {};
+		  keyframe3.key = nextEvent.beat;  // end of 'set'
+		  keyframe3.pos = isDownBow (nextEvent.type) ? (nextEvent.pos - nextEvent.length / 2) : (nextEvent.pos + nextEvent.length / 2);
+		  keyframes.push (keyframe3);    
+		  
+		  keyframe2.pos = keyframe3.pos;
+		  
+		  lastKeyStop = keyframe3.pos;   
+		
+		} else { // plain detache 
 
 			var keyframe1 = {};
 			keyframe1.key = event.beat + event.duration;
-			keyframe1.pos = event.type === 'D' ? event.pos + event.length / 2 : event.pos - event.length / 2;
+			keyframe1.pos = isDownBow (event.type) ? event.pos + event.length / 2 : event.pos - event.length / 2;
 			keyframes.push(keyframe1);
 			lastKeyStop = keyframe1.pos; 
 
@@ -447,17 +516,6 @@ function _Length (lastKeyStop, slurType, slurLength) {
    return Math.min (slurLength, maxStroke);
 }
 
-function isSlur (type) {
-   return type[0] === 'S';
-}
-
-function isStaccato(type) {
-   return type[1] === 'S' || type[1] === 'P';
-}
-
-function isPortato(type) {
-   return type[1] === 'P';
-}
 
 /////////////////////////////////////////////////////////////
 // PlayList related
@@ -479,7 +537,9 @@ function NoteOn (note, duration, dynamics, type) {
    
    var dutyCycle;
    dutyCycle = isStaccato(type) ? 0.1 : 0.9;
-   
+   if (isLift (type))
+   	dutyCycle = 0.3;
+   	
    setTimeout ( function() { NoteOff (note);}, dutyCycle*beat2Time (duration));
 }
 
@@ -494,13 +554,6 @@ function NoteOff (note) {
 // helper functions
 //
 
-function time2Beat(msec) {
-  return msec / 1000 * BPM / 60;
-}
-
-function beat2Time(beat) {  // return msec
-  return beat*60000/BPM;
-}
 
 
 function bowBody() {
@@ -581,8 +634,8 @@ function init() {
   // bowing init  
 
   // first test to run
-  eventArray = makeEventArray8();
-  $('#sequence').val ('ev8');
+  eventArray = makeEventArray3e();
+  $('#sequence').val ('ev3e');
   
   keyframes = makeSequence(eventArray);  
 
